@@ -39,7 +39,7 @@ module.exports = {
                 data += `\n**${l+1}. ${this.ncategory(l+1)}**\n`;
                 categories[l] = ass.commands.filter(command => command.category == (l+1)).map(command => {return command});
                 for(command of categories[l]){
-                    data += `${command.name} - ${command.description}\n`;
+                    data += `\${command.name}\ - ${command.description}\n`;
                 }
             }
             //console.log(123);
