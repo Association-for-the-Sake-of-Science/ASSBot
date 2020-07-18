@@ -25,6 +25,9 @@ for(const file of commandFiles) {
   const command = require(`./commands/${file}`);
   ass.commands.set(command.name, command);
 }
+
+//const tables = require(`./commands/table.js`);
+
 ass.once('ready', () => {
 
   const mservers = ass.guilds.cache.map(guild => {
@@ -36,6 +39,19 @@ ass.once('ready', () => {
     }
   }
   ass.user.setActivity('scientia');
+
+  mtable = ass.commands.get('table').rmember();
+  const table = memory.define('member', mtable);
+
+  (async () => {
+    await table.sync();
+  })()
+  .then(() => {
+    console.log('Successfully synced');
+  })
+  .catch(err => {
+    console.error(err);
+  })
 
   console.log(`I am ${ass.user.tag}`);
 });
@@ -72,7 +88,12 @@ ass.on('message', async message => {
   }
 
   try{
-    await command.execute(message, args, sequelize, memory);
+    if(command.public == false){
+      return;
+    }
+    else{
+      await command.execute(message, args, sequelize, memory);
+    }
   } catch(error){
     console.error(error);
     message.reply(`There was an Error: ${error}`);

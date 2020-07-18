@@ -1,6 +1,6 @@
 const Sequelize = require('sequelize');
 const config = require('./../config.json');
-
+const table = require('./table.js');
 
 module.exports = {
     id: 5,
@@ -12,22 +12,8 @@ module.exports = {
     category: config.Moderation,
 
     async rmember(memory){
-        const member = await memory.define('member',{
-            member_id: {
-                type: Sequelize.DataTypes.STRING,
-                unique: true
-            },
-            quiet: {
-                type: Sequelize.DataTypes.BOOLEAN
-            }
-        });
-        try{
-            await member.sync();
-        }
-        catch(err){
-            console.log('err');
-            console.error(err);
-        }
+        const member = await memory.define('member', table.rmember());
+        
         //await member.sync();
         return member;
     },
