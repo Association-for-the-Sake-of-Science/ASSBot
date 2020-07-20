@@ -12,7 +12,8 @@ module.exports = {
         let m = `\nBot Name: ${config.name}\n`;
         m += `Bot ID: ${message.client.user.id}\n`;
         m += `Bot Description: ${config.description}\n`;
-        m += `Bot Version: ${config.version}\n`;
+        m += `Bot Github Link: https://github.com/Association-for-the-Sake-of-Science/ASSBot\n`;
+        m += `Bot Version: V${config.version}\n`;
         m += `Bot Developer: <@${config.developer}>\n`;
 
         message.reply(m);

@@ -24,7 +24,6 @@ module.exports = {
     },
     execute(message, args){
         const ass = message.client;
-        //console.log(ass.commands);
 
         const commands = ass.commands.map(command => {
             return command;
@@ -45,12 +44,6 @@ module.exports = {
                     data += `*${command.name}* - ${command.description}\n`;
                 }
             }
-            //console.log(123);
-            //console.log(categories);
-            
-            /*for(i = 0; commands[i] != undefined; i++){
-                data += `${commands[i].name} - ${commands[i].description}\n`;
-            }*/
         }
         else{
             data = 'You are stupid';
@@ -58,7 +51,7 @@ module.exports = {
         return message.author.send(data, {split: true})
             .then(() => {
                 if(message.channel.type == 'dm') return;
-                else message.reply(`Check your DM!`);
+                else message.reply(`check your DM!`);
             })
             .catch(error => {
                 message.reply('Have you stupidly disabled DM?????');

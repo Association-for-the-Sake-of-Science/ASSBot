@@ -20,5 +20,20 @@ module.exports = {
 
         };
         return document;
+    },
+    rtalk(){
+        let rtalk = {
+            a_id: {
+                type: Sequelize.DataTypes.STRING
+            },
+            b_id: {
+                type: Sequelize.DataTypes.STRING
+            },
+            t_prefix: {
+                type: Sequelize.DataTypes.STRING,
+                //unique: true
+            }
+        }
+        return rtalk;
     }
 };

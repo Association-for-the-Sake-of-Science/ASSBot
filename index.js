@@ -11,8 +11,8 @@ ass.login(config.token);
 //console.log(ass);
 
 const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './db/database.sqlite'
+    dialect: 'sqlite',
+    storage: './db/database.sqlite'
 });
 const memory = new Sequelize('sqlite::memory');
 
@@ -22,80 +22,93 @@ ass.commands = new Discord.Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 //const { send } = require('process');
 for(const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  ass.commands.set(command.name, command);
+    const command = require(`./commands/${file}`);
+    ass.commands.set(command.name, command);
 }
 
 //const tables = require(`./commands/table.js`);
 
 ass.once('ready', () => {
 
-  const mservers = ass.guilds.cache.map(guild => {
-    return guild;
-  });
-  for(mguild of mservers){
-    if(mguild.systemChannel != undefined){
-      mguild.systemChannel.send(`Hi @everyone, the stupid Bot of ASS (<@${ass.user.id}>) is now available!`);
+    const mservers = ass.guilds.cache.map(guild => {
+        return guild;
+    });
+    for(mguild of mservers){
+        if(mguild.systemChannel != undefined){
+        mguild.systemChannel.send(`Hi @everyone, the stupid Bot of ASS (<@${ass.user.id}>) is now available!`);
+        }
     }
-  }
-  ass.user.setActivity('scientia');
+    ass.user.setActivity('scientia');
 
-  mtable = ass.commands.get('table').rmember();
-  const table = memory.define('member', mtable);
+    const mtable = ass.commands.get('table').rmember();
+    const table = memory.define('member', mtable);
 
-  (async () => {
-    await table.sync();
-  })()
-  .then(() => {
-    console.log('Successfully synced');
-  })
-  .catch(err => {
-    console.error(err);
-  })
+    const mtalk = ass.commands.get('table').rtalk();
+    const ttalk = memory.define('talk', mtalk);
 
-  console.log(`I am ${ass.user.tag}`);
+    (async () => {
+        await table.sync();
+        await ttalk.sync();
+    })()
+    .then(() => {
+        console.log('Successfully synced');
+    })
+    .catch(err => {
+        console.error(err);
+    })
+
+    console.log(`I am ${ass.user.tag}`);
 });
 
 ass.on('guildCreate', guild => {
-  if(guild.systemChannel != undefined){
-    guild.systemChannel.send(`Hi @everyone, I am the stupid Bot of ASS, developing by <@594604652876660756>.\nSo please don't ask me anything to do.`);
-  }
+    if(guild.systemChannel != undefined){
+        guild.systemChannel.send(`Hi @everyone, I am the stupid Bot of ASS, developing by <@594604652876660756>.\nSo please don't ask me anything to do.`);
+    }
 });
 
 ass.on('message', async message => {
 
-  const mcheck = ass.commands.get('quiet');
-  mcheck.check(message, message.author.id, memory);
+    if(message.channel.type != 'dm'){
+        const mcheck = ass.commands.get('quiet');
+        mcheck.check(message, message.author.id, memory);
+    }
+    
+    const targs = message.content.split(/~+/);
+    const t_prefix = targs.shift();
+    if(t_prefix == '$1'){
+        ass.commands.get('talk').check(message, targs, memory.define('talk', ass.commands.get('table').rtalk()), t_prefix);
+    }
 
-  if(!message.content.startsWith(config.prefix) || message.author.bot) return;
+    if(!message.content.startsWith(config.prefix) || message.author.bot) return;
 
-  const args = message.content.slice(config.prefix.length).trim().split(/~+/);
-  const commandName = args.shift().toLowerCase();
+    const args = message.content.slice(config.prefix.length).trim().split(/~+/);
+    const commandName = args.shift().toLowerCase();
 
-  if(!ass.commands.has(commandName)) return;
+    if(!ass.commands.has(commandName)) return;
   
-  const command = ass.commands.get(commandName);
+    const command = ass.commands.get(commandName);
 
-  if(command.arg && args.length == 0){
-    let reply = `You didn't provide any argument.`;
-    if(command.usage){
-      reply += `\nThe proper usage would be ${config.prefix}${commandName} ${command.usage}`;
+    if(command.arg && args.length == 0){
+        let reply = `You didn't provide any argument.`;
+        if(command.usage){
+            reply += `\nThe proper usage would be ${config.prefix}${commandName}~${command.usage}`;
+        }
+        return message.reply(reply);
     }
-    return message.reply(reply);
-  }
-  if(command.guildOnly && message.channel.type != 'text'){
-    return message.reply(`${commandName} only available in a Server`);
-  }
+    if(command.guildOnly && message.channel.type != 'text'){
+        return message.reply(`${commandName} only available in a Server`);
+    }
 
-  try{
-    if(command.public == false){
-      return;
+    try{
+        if(command.public == false){
+          return;
+        }
+        else{
+          await command.execute(message, args, sequelize, memory);
+        }
+    } 
+    catch(error){
+        console.error(error);
+        message.reply(`There was an Error: ${error}`);
     }
-    else{
-      await command.execute(message, args, sequelize, memory);
-    }
-  } catch(error){
-    console.error(error);
-    message.reply(`There was an Error: ${error}`);
-  }
 });

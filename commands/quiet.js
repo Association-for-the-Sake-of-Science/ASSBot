@@ -19,8 +19,6 @@ module.exports = {
     },
 
     check(message, user_id, memory){
-        
-        //member.sync();
         (async () =>{
             const member = await this.rmember(memory);
             const affectMember = await member.findOne({where: 
@@ -54,7 +52,6 @@ module.exports = {
     },
 
     create(message, user, member, bool, memory){
-        console.log(`2`);
         try{
             (async () => {
                 const newuser = await member.create({
@@ -77,9 +74,8 @@ module.exports = {
     },
 
     real(message, user, member, bool, memory){
-        console.log('1');
+        //console.log('1');
         (async () => {
-            //await member.sync();
             const affectMember = await member.findOne({where: 
                 { 
                     member_id: user.id
