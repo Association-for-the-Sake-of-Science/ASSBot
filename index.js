@@ -3,12 +3,9 @@ const Discord = require('discord.js');
 const config = require('./config.json');
 const Sequelize = require('sequelize');
 
-//const sqlite3 = require('sqlite3').verbose();
-
 
 const ass = new Discord.Client({disableEveryone: false});
 ass.login(config.token);
-//console.log(ass);
 
 const sequelize = new Sequelize({
     dialect: 'sqlite',
@@ -73,16 +70,15 @@ ass.on('message', async message => {
         mcheck.check(message, message.author.id, memory);
     }
     
-    const targs = message.content.split(/~+/);
-    const t_prefix = targs.shift();
-    if(t_prefix == '$1'){
-        ass.commands.get('talk').check(message, targs, memory.define('talk', ass.commands.get('table').rtalk()), t_prefix);
-    }
 
     if(!message.content.startsWith(config.prefix) || message.author.bot) return;
 
     const args = message.content.slice(config.prefix.length).trim().split(/~+/);
     const commandName = args.shift().toLowerCase();
+
+    if(commandName == '1'){
+        ass.commands.get('talk').check(message, args, memory.define('talk', ass.commands.get('table').rtalk()), `$${commandName}`);
+    }
 
     if(!ass.commands.has(commandName)) return;
   

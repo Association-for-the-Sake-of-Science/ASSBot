@@ -48,22 +48,11 @@ module.exports = {
     },
 
     check(message, args, mtalk, t_prefix){
-        (async () => {
-            const affectedTalk = await mtalk.findOne({
-                where: {
-                    [Op.or]: [{
-                        a_id: message.author.id,
-                        t_prefix: t_prefix
-                    },{
-                        b_id: message.author.id,
-                        t_prefix: t_prefix
-                    }]
-                }
-            });
-            return affectedTalk;
-        })()
-        .then(aTalk => {
-            if(aTalk != null){
+        this.find(message, mtalk, t_prefix)
+        .then(res => {
+            if(res.length != 0){
+                const aTalk = res[0];
+
                 let r_id;
                 if(message.author.id == aTalk.get('a_id')){
                     r_id = aTalk.get('b_id');
@@ -81,23 +70,49 @@ module.exports = {
                 });
                 user.send(`<@${message.author.id}>: ${args.toString()}`)
                 .then(() => {
-                    //message.reply(`successfully sended`);
                     message.react('👌')
                     .catch(err => {
                         console.error(err);
                     });
                 })
                 .catch(err => {
-                    message.reply(`you can't send message to him/her`);
+                    if(err.code == 50007){
+                        message.reply(`you can't send message to him/her`);
+                    }
+                    else{
+                        message.reply(`something went wrong`);
+                    }
+                    message.error(err);
                 });
             }
             else{
+                message.reply(`have you built a connection?`);
                 return;
             }
         })
         .catch(err => {
+            message.reply(`something went wrong`);
             console.error(err);
         });
+    },
+    async find(message, mtalk, t_prefix){
+        const affectedTalk = await mtalk.findAll({
+            where: {
+                [Op.or]: [{
+                    a_id: message.author.id,
+                    t_prefix: t_prefix
+                },{
+                    b_id: message.author.id,
+                    t_prefix: t_prefix
+                }]
+            }
+        });
+        if(affectedTalk.length < 2){
+            return affectedTalk;
+        }
+        else{
+            throw `unique error`;
+        }
     },
 
     async rtalk(memory){
@@ -105,107 +120,134 @@ module.exports = {
         return talk;
     },
 
-    execute(message, args, sequelize, memory){
-        const r_id = args.shift();
-        
-        const tk_prefix = '$1';
+    break(message, mtalk){
+        this.destroy(mtalk, message.author.id)
+        .then(res => {
+            if(res != undefined && res != null){
+                message.reply(`connection broke`);
+            }
+            else{
+                message.reply(`there was none`);
+                throw 'there was none';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            message.reply(`can't break connection: ${err.code}`);
+        });
+        return true;
+    },
 
-        (async () => {
-            const mtalk = await this.rtalk(memory);
+    async createConnection(memory){
+        const mtalk = await this.rtalk(memory);
 
-            if(r_id == 'break'){
+        return mtalk;
+    },
+
+    async buildTo(message, r_id, tk_prefix, mtalk){
+        const affectedTalk = await mtalk.create({
+            a_id: message.author.id,
+            b_id: r_id,
+            t_prefix: tk_prefix
+        });
+        if(affectedTalk != undefined && affectedTalk != null){
+            return mtalk;
+        }
+        else{
+            throw `can't create`;
+            return;
+        }
+    },
+
+    newTalkRespond(message, r_id,tk_prefix, mtalk){
+        const r = new Discord.User(message.client, {
+            id: r_id
+        });
+        r.send(`connection build with <@${message.author.id}>, prefix: ${tk_prefix}`)
+        .then(() => {
+            message.reply('successfully created a connection');
+        })
+        .catch(err => {
+            if(err.code == 50007){
+                message.reply(`you can't send messages to him/her`);
                 this.destroy(mtalk, message.author.id)
                 .then(res => {
                     if(res != undefined && res != null){
                         message.reply(`connection broke`);
                     }
                     else{
-                        message.reply(`there was none`);
-                        throw 'there was none';
+                        return;
                     }
                 })
                 .catch(err => {
                     console.error(err);
                     message.reply(`can't break connection: ${err.code}`);
                 });
-                throw `connection broke`;
-            }
-
-            const a_exist = await this.exists(message.author.id, mtalk);
-            const b_exist = await this.exists(r_id, mtalk);
-            
-            if(a_exist == true || b_exist == true){
-                message.reply(`you can't build a connection, because either you or he/she already got one!!!`);
-                throw 'connection alredy exists';
             }
             else{
-                return mtalk;
+                message.reply(`something went wrong: ${err.code}`);
             }
-        })()
+            console.error(err);
+        });
+    },
+
+    execute(message, args, sequelize, memory){
+        const command = args.shift();
+        
+        const tk_prefix = '$1';
+
+        this.createConnection(memory)
         .then(mtalk => {
-            try {
-                (async () => {
-                     const affectedTalk = await mtalk.create({
-                         a_id: message.author.id,
-                        b_id: r_id,
-                        t_prefix: tk_prefix
-                    });
-                    if(affectedTalk != undefined && affectedTalk != null){
-                        return mtalk;
-                    }
-                    else{
-                        throw `can't create`;
-                        return;
-                    }
-                })()
-                .then(mtalk => {
-                    try{
-                        const r = new Discord.User(message.client, {
-                            id: r_id
-                        });
-                        r.send(`connection build with <@${message.author.id}>, prefix: ${tk_prefix}`)
+            switch(command){
+                case 'to':
+                    const r_id = args.shift();
+
+                    (async () => {
+                        const a_exist = await this.exists(message.author.id, mtalk);
+                        const b_exist = await this.exists(r_id, mtalk);
+    
+                        if(a_exist == true || b_exist == true){
+                            message.reply(`you can't build a connection, because either you or he/she already got one!!!`);
+                            throw 'connection alredy exists';
+                        }
+                    })()
+                    .then(() => {
+                        this.buildTo(message, r_id, tk_prefix, mtalk)
                         .then(() => {
-                            message.reply('successfully created a connection');
+                            this.newTalkRespond(message, r_id, tk_prefix, mtalk);
                         })
                         .catch(err => {
-                            if(err.code == 50007){
-                                message.reply(`you can't send messages to him/her`);
-                                (async () => {
-                                    const affectedTalk = await mtalk.destroy({
-                                        where: {
-                                            a_id: message.author.id,
-                                            b_id: r_id
-                                        }
-                                    });
-                                    return affectedTalk;
-                                })()
-                                .then(res => {
-                                    if(res != undefined && res != null){
-                                        message.reply(`connection broke`);
-                                    }
-                                    else{
-                                        return;
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error(err);
-                                    message.reply(`can't break connection: ${err.code}`);
-                                });
-                            }
-                            else{
+                            if(err.code != undefined){
                                 message.reply(`something went wrong: ${err.code}`);
+                            }
+                            else {
+                                message.reply(`something went wrong: ${err}`);
                             }
                             console.error(err);
                         });
-                    } catch(err){
+                    })
+                    .catch(err => {
+                        if(err.code != undefined){
+                            message.reply(`something went wrong: ${err.code}`);
+                        }
+                        else {
+                            message.reply(`something went wrong: ${err}`);
+                        }
                         console.error(err);
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                })
-            } catch(err){
-                console.error(err);
+                        return;
+                    });
+
+                    break;
+
+                case 'break':
+                    this.break(message, mtalk);
+                    break;
+
+                case 'check':
+                    break;
+
+                default:
+                    return;
             }
         })
         .catch(err => {

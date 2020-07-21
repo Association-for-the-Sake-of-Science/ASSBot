@@ -24,10 +24,12 @@ module.exports = {
     rtalk(){
         let rtalk = {
             a_id: {
-                type: Sequelize.DataTypes.STRING
+                type: Sequelize.DataTypes.STRING,
+                unique: true
             },
             b_id: {
-                type: Sequelize.DataTypes.STRING
+                type: Sequelize.DataTypes.STRING,
+                unique: true
             },
             t_prefix: {
                 type: Sequelize.DataTypes.STRING,
