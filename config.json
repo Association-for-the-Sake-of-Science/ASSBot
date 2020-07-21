@@ -4,7 +4,7 @@
     "version": "0.0.1",
     "developer": "594604652876660756",
     "description": "A stupid Bot",
-    "token": "YOUT TOKEN HERE",
+    "token": "YOUR TOKEN HERE",
     "Moderation": 1,
     "Utility": 2,
     "Learning": 3
