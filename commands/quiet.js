@@ -74,7 +74,6 @@ module.exports = {
     },
 
     real(message, user, member, bool, memory){
-        //console.log('1');
         (async () => {
             const affectMember = await member.findOne({where: 
                 { 
@@ -125,7 +124,6 @@ module.exports = {
             }
         })
         .catch(err => {
-            console.log('Error');
             console.error(err);
         });
     }

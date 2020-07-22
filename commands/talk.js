@@ -82,7 +82,7 @@ module.exports = {
                     else{
                         message.reply(`something went wrong`);
                     }
-                    message.error(err);
+                    console.error(err);
                 });
             }
             else{
@@ -95,6 +95,7 @@ module.exports = {
             console.error(err);
         });
     },
+    
     async find(message, mtalk, t_prefix){
         const affectedTalk = await mtalk.findAll({
             where: {
@@ -207,7 +208,7 @@ module.exports = {
                         const b_exist = await this.exists(r_id, mtalk);
     
                         if(a_exist == true || b_exist == true){
-                            message.reply(`you can't build a connection, because either you or he/she already got one!!!`);
+                            //message.reply(`you can't build a connection, because either you or he/she already got one!!!`);
                             throw 'connection alredy exists';
                         }
                     })()
@@ -244,6 +245,31 @@ module.exports = {
                     break;
 
                 case 'check':
+                    this.find(message, mtalk, tk_prefix)
+                    .then(res => {
+                        if(res.length != 0){
+                            let p_id;
+                            if(res[0].get('a_id') == message.author.id){
+                                p_id = res[0].get('b_id');
+                            }
+                            else{
+                                p_id = res[0].get('a_id');
+                            }
+                            message.reply(`there is a connection betwenn you and <@${p_id}>`);
+                        }
+                        else{
+                            message.reply(`you don't have a talk connection yet`);
+                        }
+                    })
+                    .catch(err => {
+                        if(err.code != undefined){
+                            message.reply(`something went wrong: ${err.code}`);
+                        }
+                        else {
+                            message.reply(`something went wrong: ${err}`);
+                        }
+                        console.error(err);
+                    });
                     break;
 
                 default:

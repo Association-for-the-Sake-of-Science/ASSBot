@@ -38,14 +38,19 @@ ass.once('ready', () => {
     ass.user.setActivity('scientia');
 
     const mtable = ass.commands.get('table').rmember();
-    const table = memory.define('member', mtable);
 
     const mtalk = ass.commands.get('table').rtalk();
-    const ttalk = memory.define('talk', mtalk);
+
 
     (async () => {
+        const table = await memory.define('member', mtable);
         await table.sync();
+
+        const ttalk = await memory.define('talk', mtalk);
         await ttalk.sync();
+
+        const document = await sequelize.define('document', ass.commands.get('table').rdocument());
+        await document.sync();
     })()
     .then(() => {
         console.log('Successfully synced');
