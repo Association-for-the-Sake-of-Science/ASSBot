@@ -1,5 +1,4 @@
 const config = require('./../config.json');
-//const Sequelize = require('sequelize');
 const Op = require('sequelize').Op;
 
 const Discord = require('discord.js');

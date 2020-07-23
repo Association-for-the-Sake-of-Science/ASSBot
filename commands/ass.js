@@ -36,6 +36,10 @@ module.exports = {
                     }
                 ]
             }
+        })
+        .catch(err => {
+            message.reply(`something went wrong`);
+            console.error(err);
         });
         
         return result.map( res => {
@@ -76,36 +80,54 @@ module.exports = {
                 const attachment = message.attachments.map(attachment => {
                     return attachment;
                 });
-                if(attachment.length == 0){
-                    message.reply(`you didn't give an attachment`);
+                if(attachment.length > 1){
+                    message.reply('too many attachments');
                     return;
                 }
-                
-                if(args.length > 2){
-                    message.reply(`you need to provide some infos split by ~`);
+
+                let url, name;
+                if(attachment.length == 0 && args[2] != undefined && args[3] != undefined){
+                    name = args[2];
+                    url = args[3];
+                }
+                else if(attachment.length ==0 && (args[2] == undefined || args[3] == undefined)){
+                    message.reply(`you didn't give an attachment or a url`);
                     return;
+                }
+                else{
+                    name = attachment[0].name;
+                    url = attachment[0].url;
+                }
+                if(args.length < 2){
+                    message.reply(`you need to provide some infomations split by ~`);
                 }
                 
                 try{
                     (async () => {
-                        for(attach of attachment){
-                            const newdocument = await document.create({
-                                author_id: message.author.id,
-                                message_id: message.id,
-                                document_name: attach.name,
-                                document_description: args[0],
-                                document_type: args[1],
-                                document_link: attach.url
-                            }).catch( err => {console.error(err);});
-                        }
-                        return attachment.length;
+                        const newdocument = await document.create({
+                            author_id: message.author.id,
+                            message_id: message.id,
+                            document_name: name,
+                            document_description: args[0],
+                            document_type: args[1],
+                            document_link: url
+                        }).catch( err => {console.error(err);});
+
+                        return newdocument;
                     })().then(result => {
-                        message.reply(`susccesfully storaged ${result} files.`);
+                        if(result != undefined && result != null){
+                            message.react('👌')
+                            .catch(err => {
+                                console.error(err);
+                            });
+                        }
+                        else{
+                            message.reply(`something went wrong`);
+                        }
                     })
                     .catch(err => {
                         console.error(err);
                     });
-                    
                 } catch(err){
                     console.error(err);
                 }
@@ -116,8 +138,15 @@ module.exports = {
                 .then(result => {
                     if(result.length > 0){
                         for(res of result){
-                            const mattach = new Discord.MessageAttachment(res.get('document_link'));
-                            message.reply(`your wished thing: \nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}`, mattach);
+                            if(res.get('document_link').includes(`cdn.discordapp.com/attachments`)){
+                                const mattach = new Discord.MessageAttachment(res.get('document_link'));
+                                message.reply(`your wished thing: \nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}`, mattach)
+                                .catch(err => { console.error(err); });
+                            }
+                            else{
+                                message.reply(`your wished thing: \nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}\nLink: ${res.get('document_link')}`)
+                                .catch(err => { console.error(err); });
+                            }
                         }
                     }
                     else {
