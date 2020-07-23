@@ -141,7 +141,6 @@ module.exports = {
 
     async createConnection(memory){
         const mtalk = await this.rtalk(memory);
-
         return mtalk;
     },
 

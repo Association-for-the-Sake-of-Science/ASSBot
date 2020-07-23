@@ -41,6 +41,5 @@ module.exports = {
         for(user of Users){
             this.kick(user, message)
         }
-        //console.log(message.guild);
     }
 };

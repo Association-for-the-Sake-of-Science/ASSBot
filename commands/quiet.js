@@ -13,8 +13,6 @@ module.exports = {
 
     async rmember(memory){
         const member = await memory.define('member', table.rmember());
-        
-        //await member.sync();
         return member;
     },
 
@@ -101,7 +99,7 @@ module.exports = {
     },
 
     execute(message, args, sequelize, memory){
-        if(message.author.id != '594604652876660756'){
+        if(message.author.id != config.developer){
             message.reply(`you are not smart enough to use this command!`);
             return;
         }
@@ -111,7 +109,6 @@ module.exports = {
         })()
         .then(member => {
             const user = message.mentions.users.first();
-            //const info = args.toString().split(/~+/);
             switch(args[0]){
                 case 'true':
                     this.real(message, user, member, true, memory);

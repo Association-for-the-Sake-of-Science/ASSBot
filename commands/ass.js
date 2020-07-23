@@ -2,7 +2,6 @@ const Sequelize = require('sequelize');
 const Discord = require('discord.js');
 const config = require('./../config.json');
 const table = require('./table.js');
-const { destroy } = require('./talk');
 
 const Op = Sequelize.Op;
 
@@ -70,9 +69,8 @@ module.exports = {
 
     execute(message, args, sequelize){
         const document = sequelize.define('document', table.rdocument());
-
-        //document.sync(/*{force: true}*/);
         const commandArg = args.shift().toLowerCase();
+        
         switch(commandArg){
             case 'new':
                 const attachment = message.attachments.map(attachment => {
