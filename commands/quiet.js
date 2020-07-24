@@ -72,30 +72,32 @@ module.exports = {
     },
 
     real(message, user, member, bool, memory){
-        (async () => {
-            const affectMember = await member.findOne({where: 
-                { 
-                    member_id: user.id
+        for(let i = 0; user[i] != undefined; i++){
+            (async () => {
+                const affectMember = await member.findOne({where: 
+                    { 
+                        member_id: user[i].id
+                    }
+                });
+                if(affectMember != undefined){
+                    const affectedMember = await member.update({quiet: bool}, { where: { member_id: user[i].id} });
+                    if(affectedMember > 0){
+                        this.answer(message, user[i].id, bool, true);
+                    }
+                    else{
+                        this.answer(message, user[i].id, bool, false, undefined);
+                    }
                 }
+                else {
+                    await this.create(message, user[i], member, bool, memory);
+                }
+            })()
+            .then(() => {
+            })
+            .catch(err => {
+                this.answer(message, null, null, false, err);
             });
-            if(affectMember != undefined){
-                const affectedMember = await member.update({quiet: bool}, { where: { member_id: user.id} });
-                if(affectedMember > 0){
-                    this.answer(message, user.id, bool, true);
-                }
-                else{
-                    this.answer(message, user.id, bool, false, undefined);
-                }
-            }
-            else {
-                await this.create(message, user, member, bool, memory);
-            }
-        })()
-        .then(() => {
-        })
-        .catch(err => {
-            this.answer(message, null, null, false, err);
-        });
+        }
     },
 
     execute(message, args, sequelize, memory){
@@ -108,7 +110,11 @@ module.exports = {
             return member;
         })()
         .then(member => {
-            const user = message.mentions.users.first();
+            const user = message.mentions.users.map(user => user);
+            if(user.length == 0){
+                message.reply(`please mention a valid user`);
+                return;
+            }
             switch(args[0]){
                 case 'true':
                     this.real(message, user, member, true, memory);
