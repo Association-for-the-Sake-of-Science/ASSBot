@@ -34,6 +34,28 @@ for (const file of commandFiles) {
     ass.commands.set(command.name, command);
 }
 
+//db start and sync
+const mtable = ass.commands.get('table').rmember();
+const mtalk = ass.commands.get('table').rtalk();
+
+(async () => {
+    const table = await memory.define('member', mtable);
+    await table.sync();
+
+    const ttalk = await memory.define('talk', mtalk);
+    await ttalk.sync();
+
+    const document = await sequelize.define('document', ass.commands.get('table').rdocument());
+    await document.sync();
+})()
+.then(() => {
+     console.log('Successfully synced');
+})
+.catch(err => {
+    console.error(err);
+});
+
+
 /*-----------------------------Startup-----------------------------*/
 ass.once('ready', () => {
     //Send hello message to all servers 
@@ -48,28 +70,7 @@ ass.once('ready', () => {
     //set activity bot
     ass.user.setActivity('scientia');
 
-    //db start and sync 
-    const mtable = ass.commands.get('table').rmember();
-
-    const mtalk = ass.commands.get('table').rtalk();
-
-    (async () => {
-        const table = await memory.define('member', mtable);
-        await table.sync();
-
-        const ttalk = await memory.define('talk', mtalk);
-        await ttalk.sync();
-
-        const document = await sequelize.define('document', ass.commands.get('table').rdocument());
-        await document.sync();
-    })()
-        .then(() => {
-            console.log('Successfully synced');
-        })
-        .catch(err => {
-            console.error(err);
-        })
-        //hello message 
+    //hello message 
     console.log(`I am ${ass.user.tag}`);
 });
 //send hellomessage to new servers 
