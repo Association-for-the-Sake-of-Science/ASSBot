@@ -21,18 +21,21 @@ module.exports = {
                 [Op.or]: [
                     {
                         document_name: {
-                            [Op.like]: "%"+name+"%"
+                            [Op.like]: `%${name}%`
                         }
                     },
                     {
                         document_description: {
-                            [Op.like]: "%"+name+"%"
+                            [Op.like]: `%${name}%`
                         }
                     },
                     {
                         document_type: {
-                            [Op.like]: "%"+name+"%"
+                            [Op.like]: `%${name}%`
                         }
+                    },
+                    {
+                        message_id: name
                     }
                 ]
             }
@@ -68,6 +71,20 @@ module.exports = {
         }
         else {
             throw `unique error`;
+        }
+    },
+
+    list(message, things){
+        let data = `your wished things:\n`;
+        try {
+            for(let i = 0; things[i] != undefined; i++){
+                data += `${i+1}. **${things[i].get('document_name')}** - <@${things[i].get('author_id')}> - ${things[i].get('document_type')} - ${things[i].get(`message_id`)}\n`;
+            }
+            message.reply(data, { split: true });
+        }
+        catch(err){
+            message.reply(`something went wrong`);
+            console.error(err);
         }
     },
 
@@ -111,7 +128,7 @@ module.exports = {
                             document_description: args[0],
                             document_type: args[1],
                             document_link: url
-                        }).catch( err => {console.error(err);});
+                        }).catch( err => { console.error(err); });
 
                         return newdocument;
                     })().then(result => {
@@ -137,14 +154,18 @@ module.exports = {
                 this.search(args.toString(), document)
                 .then(result => {
                     if(result.length > 0){
-                        for(res of result){
+                        if(result.length > 1){
+                            this.list(message, result);
+                        }
+                        else{
+                            const res = result[0];
                             if(res.get('document_link').includes(`cdn.discordapp.com/attachments`)){
                                 const mattach = new Discord.MessageAttachment(res.get('document_link'));
-                                message.reply(`your wished thing: \nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}`, mattach)
+                                message.reply(`your wished thing: \nAuthor: <@${res.get('author_id')}>\nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}`, mattach)
                                 .catch(err => { console.error(err); });
                             }
                             else{
-                                message.reply(`your wished thing: \nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}\nLink: ${res.get('document_link')}`)
+                                message.reply(`your wished thing: \nAuthor: <@${res.get('author_id')}>\nDescription: ${res.get('document_description')}\nType: ${res.get('document_type')}\nId: ${res.get('message_id')}\nLink: ${res.get('document_link')}`)
                                 .catch(err => { console.error(err); });
                             }
                         }
