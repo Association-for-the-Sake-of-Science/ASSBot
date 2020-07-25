@@ -169,7 +169,12 @@ module.exports = {
         .catch(err => {
             if(err.code == 50007){
                 message.reply(`you can't send messages to him/her`);
-                this.destroy(mtalk, message.author.id)
+            }
+            else{
+                message.reply(`something went wrong: ${err.code}`);
+            }
+            console.error(err);
+            this.destroy(mtalk, message.author.id)
                 .then(res => {
                     if(res != undefined && res != null){
                         message.reply(`connection broke`);
@@ -182,11 +187,6 @@ module.exports = {
                     console.error(err);
                     message.reply(`can't break connection: ${err.code}`);
                 });
-            }
-            else{
-                message.reply(`something went wrong: ${err.code}`);
-            }
-            console.error(err);
         });
     },
 
@@ -207,7 +207,7 @@ module.exports = {
     
                         if(a_exist == true || b_exist == true){
                             //message.reply(`you can't build a connection, because either you or he/she already got one!!!`);
-                            throw 'connection alredy exists';
+                            throw 'connection already exists';
                         }
                     })()
                     .then(() => {
