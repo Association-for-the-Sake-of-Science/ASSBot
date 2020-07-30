@@ -129,6 +129,8 @@ ass.on('message', async message => {
     }
     catch (error) {
         console.error(error);
-        message.reply(`There was an Error: ${error}`);
+        if(err.code != undefined){
+            message.reply(`There was an Error: ${error.code}`);
+        }
     }
 });

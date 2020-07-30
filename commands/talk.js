@@ -206,8 +206,7 @@ module.exports = {
                         const b_exist = await this.exists(r_id, mtalk);
     
                         if(a_exist == true || b_exist == true){
-                            //message.reply(`you can't build a connection, because either you or he/she already got one!!!`);
-                            throw 'connection already exists';
+                            throw 'one connection already exists';
                         }
                     })()
                     .then(() => {
@@ -253,7 +252,7 @@ module.exports = {
                             else{
                                 p_id = res[0].get('a_id');
                             }
-                            message.reply(`there is a connection betwenn you and <@${p_id}>`);
+                            message.reply(`there is a connection between you and <@${p_id}>`);
                         }
                         else{
                             message.reply(`you don't have a talk connection yet`);
