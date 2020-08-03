@@ -102,12 +102,14 @@ module.exports = {
                     return;
                 }
 
-                let url, name;
+                let url = new String(), name;
                 if(attachment.length == 0 && args[2] != undefined && args[3] != undefined){
                     name = args[2];
-                    url = args[3];
+                    for(let i = 3; args[i] != undefined; i++){
+                        url += args[i];
+                    }
                 }
-                else if(attachment.length ==0 && (args[2] == undefined || args[3] == undefined)){
+                else if(attachment.length == 0 && (args[2] == undefined || args[3] == undefined)){
                     message.reply(`you didn't give an attachment or a url`);
                     return;
                 }
